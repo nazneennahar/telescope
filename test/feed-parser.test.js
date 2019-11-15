@@ -25,3 +25,38 @@ test('Passing an invalid RSS feed URI should error', async () => {
 test('Passing a valid URI, but not a feed URI should error', async () => {
   await expect(feedParser('https://google.ca')).rejects.toThrow('Not a feed');
 });
+
+const assertValidFeed = (feed) => {
+  expect(Array.isArray(feed)).toBeTruthy();
+  expect(feed.length > 0).toBeTruthy();
+};
+
+
+test('Non existant feed failure case.', async () => {
+  try {
+    await feedParser('http://doesnotexists___.com');
+  } catch (err) {
+    expect(err.message).toBe('getaddrinfo ENOTFOUND doesnotexists___.com doesnotexists___.com:80');
+  }
+});
+
+test('Not a feed failure case', async () => {
+  try {
+    const nonFeedURL = 'https://kerleysblog.blogspot.com';
+    await feedParser(nonFeedURL);
+  } catch (err) {
+    expect(err.message).toBe('Not a feed');
+  }
+});
+
+test('Blogger feed success case', async () => {
+  const validFeed = 'https://kerleysblog.blogspot.com/feeds/posts/default?alt=rss';
+  const feed = await feedParser(validFeed);
+  assertValidFeed(feed);
+});
+
+test('Wordpress site feed success case', async () => {
+  const validFeed = 'https://medium.com/feed/@Medium';
+  const feed = await feedParser(validFeed);
+  assertValidFeed(feed);
+});
